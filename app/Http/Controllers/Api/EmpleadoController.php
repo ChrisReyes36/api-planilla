@@ -62,6 +62,7 @@ class EmpleadoController extends Controller
     $empleados = Empleado::select(
       'a.id',
       DB::raw("CONCAT_WS(' ', a.nombres, a.apellidos) razon_social"),
+      'a.num_cliente',
     )
       ->from('tbl_empleados as a')
       ->where('a.estado', 'A')

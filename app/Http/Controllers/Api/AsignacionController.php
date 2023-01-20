@@ -52,13 +52,14 @@ class AsignacionController extends Controller
         $query->on('e.id_departamento', '=', 'f.id');
       })
       ->groupBy('a.id_empleado')
-      ->orderBy('b.nombres', 'asc')
+      ->orderBy('f.nombre', 'asc')
+      ->orderBy('b.sueldo', 'desc')
       ->get();
 
     return $empleados;
   }
 
-  private function getAsiganciones($id_emplado)
+  private function getAsignaciones($id_emplado)
   {
     $asignaciones = Asignacion::select(
       'a.id',
@@ -80,6 +81,7 @@ class AsignacionController extends Controller
         $query->on('a.id_tipo_asignacion', '=', 'd.id');
       })
       ->where('a.id_empleado', $id_emplado)
+      ->orderBy('a.estado', 'asc')
       ->orderBy('c.nombre', 'asc')
       ->get();
 
@@ -98,7 +100,7 @@ class AsignacionController extends Controller
       $asignacion->departamento = $value->departamento;
       $asignacion->puesto = $value->puesto;
       $asignacion->sueldo = $value->sueldo;
-      $asignacion->asignaciones = $this->getAsiganciones($value->id_empleado);
+      $asignacion->asignaciones = $this->getAsignaciones($value->id_empleado);
       array_push($asignaciones, $asignacion);
     }
 

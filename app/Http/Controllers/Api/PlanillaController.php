@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exports\DetallePlanillaExport;
 use App\Http\Controllers\Controller;
 use App\Models\Planilla;
 use Carbon\Carbon;
@@ -93,6 +94,72 @@ class PlanillaController extends Controller
     ], 200);
   }
 
+  private function showDetail($id)
+  {
+    $sql = "SELECT
+      a.id,
+      @i := @i + 1 as contador,
+      a.id_empleado,
+      CONCAT_WS(' ', b.nombres, b.apellidos) colaborador,
+      d.nombre departamento,
+      c.nombre puesto,
+      DATE_FORMAT(b.fecha_ingreso, '%d-%m-%Y') fecha_ingreso,
+      b.num_cliente,
+      e.num_cuenta,
+      b.sueldo,
+      a.dias_trabajados,
+      a.calculo_salario,
+      a.bonos,
+      a.bonos_variables,
+      a.vacaciones,
+      a.comision,
+      (a.calculo_salario + a.bonos + a.vacaciones + a.comision) t_quincena,
+      a.isss,
+      a.afp,
+      a.ipsfa,
+      (a.calculo_salario + a.bonos + a.vacaciones + a.comision) - (a.isss + a.afp + a.ipsfa) t_quincena_desc,
+      a.renta,
+      a.total_descuentos,
+      a.prestamos,
+      a.pgr,
+      a.fsv,
+      a.fosafi,
+      a.anticipos,
+      a.dv,
+      a.viaticos,
+      a.sueldo_liquido
+      FROM tbl_detalle_planillas a
+      INNER JOIN tbl_empleados b ON a.id_empleado = b.id
+      LEFT JOIN tbl_puestos c ON b.id_puesto = c.id
+      LEFT JOIN tbl_departamentos d ON c.id_departamento = d.id
+      LEFT JOIN tbl_cuentas e ON b.id_cuenta = e.id
+      CROSS JOIN (SELECT @i := 0) r
+      WHERE a.id_planilla = ?
+      ORDER BY @i := @i + 1 ASC, d.nombre ASC, a.sueldo DESC;";
+    $detalle = DB::select($sql, [$id]);
+    return $detalle;
+  }
+
+  public function getDetailPlanilla($id)
+  {
+    // Retornado respuesta.
+    return response()->json([
+      'success' => true,
+      'detalle' => $this->showDetail($id),
+    ], 200);
+  }
+
+  public function getTypes()
+  {
+    // Obtenemos datos.
+    $tipos = DB::select("SELECT a.id, CONCAT_WS('-', a.nombre, a.detalle) nombre FROM tbl_tipo_planillas a;");
+    // Retornado respuesta.
+    return response()->json([
+      'success' => true,
+      'tipos' => $tipos,
+    ], 200);
+  }
+
   public function store(Request $request)
   {
     try {
@@ -113,6 +180,9 @@ class PlanillaController extends Controller
       // Creando un registro.
       $planilla = Planilla::create($data);
       $planilla->save();
+      $uIdPlanilla = Planilla::latest('id')->first();
+      // Llenando Detalle Planilla.
+      DB::select('CALL Sp_Insertar_D_planilla(?)', [$uIdPlanilla->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,
@@ -134,11 +204,58 @@ class PlanillaController extends Controller
 
   public function update(Request $request, $id)
   {
-    //
+    try {
+      // Actualizando Detalle Planilla.
+      DB::select('CALL Sp_Recalcular_planilla(?)', [$id]);
+      // Retornando respuesta.
+      return response()->json([
+        'success' => true,
+        'message' => '¡Recálculo realizado exitósamente!',
+      ], 201);
+    } catch (\Exception $e) {
+      // Retornando respuesta del error.
+      return response()->json([
+        'success' => false,
+        'message' => $e->getMessage(),
+      ], 500);
+    }
   }
 
   public function destroy($id)
   {
-    //
+    try {
+      // Eliminando registro.
+      DB::select('DELETE FROM tbl_detalle_planillas WHERE id = ?', [$id]);
+      // Retornando respuesta.
+      return response()->json([
+        'success' => true,
+        'message' => "¡Detalle eliminado exitósamente!",
+      ], 200);
+    } catch (\Exception $e) {
+      // Retornando respuesta del error.
+      return response()->json([
+        'success' => false,
+        'message' => $e->getMessage(),
+      ], 500);
+    }
+  }
+
+  private function createStruct()
+  {
+    return (object) [
+      'f_inicio' => null,
+      'f_fin' => null,
+      'detalles' => [],
+    ];
+  }
+
+  public function exportExcel($id)
+  {
+    $planilla = Planilla::find($id);
+    $detalle = $this->createStruct();
+    $detalle->f_inicio = Carbon::parse($planilla->f_inicio_planilla)->format('d/m/Y');
+    $detalle->f_fin = Carbon::parse($planilla->f_fin_planilla)->format('d/m/Y');
+    $detalle->detalles = $this->showDetail($planilla->id);
+    return new DetallePlanillaExport($detalle);
   }
 }

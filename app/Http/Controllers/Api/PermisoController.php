@@ -19,17 +19,26 @@ class PermisoController extends Controller
     ];
   }
 
-  public function index()
+  private function createStruct()
   {
-    // Obtenemos datos.
-    $permisos = Permiso::select(
-      'a.id',
+    return (object) [
+      'id_usuario' => null,
+      'razon_social' => null,
+      'agencia' => null,
+      'departamento' => null,
+      'puesto' => null,
+      'permisos' => [],
+    ];
+  }
+
+  private function getUsuarios()
+  {
+    $usuarios = Permiso::select(
       'a.id_usuario',
-      DB::raw('CONCAT_WS(" ", c.nombres, c.apellidos) usuario'),
-      'a.id_ruta',
-      'd.descripcion',
-      'd.ruta',
-      'a.estado'
+      DB::raw('CONCAT_WS(" ", c.nombres, c.apellidos) razon_social'),
+      'd.nombre as agencia',
+      'e.nombre as puesto',
+      'f.nombre as departamento',
     )
       ->from('tbl_permisos_usuarios as a')
       ->join('tbl_usuarios as b', function ($query) {
@@ -38,11 +47,59 @@ class PermisoController extends Controller
       ->join('tbl_empleados as c', function ($query) {
         $query->on('b.id_empleado', '=', 'c.id');
       })
-      ->join('tbl_rutas as d', function ($query) {
-        $query->on('a.id_ruta', '=', 'd.id');
+      ->join('tbl_agencias as d', function ($query) {
+        $query->on('c.id_agencia', '=', 'd.id');
       })
-      // ->where('a.estado', 'A')
-      ->orderBy('c.nombres', 'asc')->get();
+      ->leftJoin('tbl_puestos as e', function ($query) {
+        $query->on('c.id_puesto', '=', 'e.id');
+      })
+      ->leftJoin('tbl_departamentos as f', function ($query) {
+        $query->on('e.id_departamento', '=', 'f.id');
+      })
+      ->groupBy('a.id_usuario')
+      ->orderBy('c.nombres', 'asc')
+      ->get();
+
+    return $usuarios;
+  }
+
+  public function getPermisos($idUsuario)
+  {
+    $permisos = Permiso::select(
+      'a.id',
+      'a.id_usuario',
+      'a.id_ruta',
+      'b.descripcion',
+      'b.ruta',
+      'a.estado',
+    )
+      ->from('tbl_permisos_usuarios as a')
+      ->join('tbl_rutas as b', function ($query) {
+        $query->on('a.id_ruta', '=', 'b.id');
+      })
+      ->where('a.id_usuario', $idUsuario)
+      ->orderBy('a.estado', 'asc')
+      ->orderBy('b.descripcion', 'asc')
+      ->get();
+
+    return $permisos;
+  }
+
+  public function index()
+  {
+    $permisos = [];
+    // Obtenemos datos.
+    $data = $this->getUsuarios();
+    foreach ($data as $key => $value) {
+      $permiso = $this->createStruct();
+      $permiso->id_usuario = $value->id_usuario;
+      $permiso->razon_social = $value->razon_social;
+      $permiso->agencia = $value->agencia;
+      $permiso->departamento = $value->departamento;
+      $permiso->puesto = $value->puesto;
+      $permiso->permisos = $this->getPermisos($value->id_usuario);
+      array_push($permisos, $permiso);
+    }
     // Retornado respuesta.
     return response()->json([
       'success' => true,
@@ -123,7 +180,7 @@ class PermisoController extends Controller
       })->where([
         ['a.id_usuario', $id_usuario],
         ['a.estado', 'A']
-      ])->orderBy('b.ruta', 'asc')->get();
+      ])->orderBy('b.descripcion', 'asc')->get();
     // Verificamos si existen registros.
     if (!$permisos) {
       return response()->json([

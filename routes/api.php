@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AgenciaController;
 use App\Http\Controllers\Api\AsignacionController;
 use App\Http\Controllers\Api\BancoController;
+use App\Http\Controllers\Api\ComisionController;
 use App\Http\Controllers\Api\ConceptoController;
 use App\Http\Controllers\Api\CuentaController;
 use App\Http\Controllers\Api\DepartamentoController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\Api\EmpleadoController;
 use App\Http\Controllers\Api\OperacionController;
 use App\Http\Controllers\Api\PermisoController;
 use App\Http\Controllers\Api\PlanillaController;
+use App\Http\Controllers\Api\PrestamoController;
 use App\Http\Controllers\Api\PuestoController;
 use App\Http\Controllers\Api\RutaController;
 use App\Http\Controllers\Api\UsuarioController;
@@ -131,5 +133,25 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
   Route::group(['prefix' => 'planillas'], function () {
     Route::get('/', [PlanillaController::class, 'index']);
     Route::post('/', [PlanillaController::class, 'store']);
+    Route::post('/exportar/{id}', [PlanillaController::class, 'exportExcel']);
+    Route::get('/tipos', [PlanillaController::class, 'getTypes']);
+    Route::get('/detalle/{id}', [PlanillaController::class, 'getDetailPlanilla']);
+    Route::put('/recalcular/detalle/{id}', [PlanillaController::class, 'update']);
+    Route::delete('/{id}', [PlanillaController::class, 'destroy']);
+  });
+  // Rutas Comisiones
+  Route::group(['prefix' => 'comisiones'], function () {
+    Route::get('/', [ComisionController::class, 'index']);
+    Route::post('/', [ComisionController::class, 'store']);
+    Route::get('/{id}', [ComisionController::class, 'show']);
+    Route::put('/{id}', [ComisionController::class, 'update']);
+  });
+  // Rutas Préstamos
+  Route::group(['prefix' => 'prestamos'], function () {
+    Route::get('/', [PrestamoController::class, 'index']);
+    Route::post('/', [PrestamoController::class, 'store']);
+    Route::get('/{id}', [PrestamoController::class, 'show']);
+    Route::put('/{id}', [PrestamoController::class, 'update']);
+    Route::delete('/{id}', [PrestamoController::class, 'destroy']);
   });
 });
