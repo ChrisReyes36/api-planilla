@@ -12,12 +12,10 @@ use Illuminate\Support\Facades\Validator;
 
 class PlanillaController extends Controller
 {
-  private function validations($planillaId = '')
+  private function validations()
   {
     // Validaciones.
-    $id = $planillaId ? ', ' . $planillaId : '';
     return [
-      'codigo' => ['unique:tbl_planillas,codigo' . $id],
       'id_tipo_planilla' => ['required', 'int'],
     ];
   }
@@ -70,6 +68,9 @@ class PlanillaController extends Controller
       $f_inicio_planilla,
       $f_fin_planilla,
       $codigo,
+      $tipo[0]->nombre,
+      $mesActual,
+      $anioActual,
     ];
   }
 
@@ -165,10 +166,6 @@ class PlanillaController extends Controller
     try {
       // Obtenemos datos.
       $data = $request->all();
-      $values = $this->datesTypesCode($data['id_tipo_planilla']);
-      $data["f_inicio_planilla"] = $values[0];
-      $data["f_fin_planilla"] = $values[1];
-      $data["codigo"] = $values[2];
       // Validamos.
       $validator = Validator::make($data, $this->validations());
       if ($validator->fails()) {
@@ -177,12 +174,39 @@ class PlanillaController extends Controller
           'errors' => $validator->errors()
         ], 400);
       }
+      // Asignamos Valores
+      $values = $this->datesTypesCode($data['id_tipo_planilla']);
+      $data["f_inicio_planilla"] = $values[0];
+      $data["f_fin_planilla"] = $values[1];
+      $data["codigo"] = $values[2];
+      $tipo = $values[3];
+      $mesActual = $values[4];
+      $anioActual = $values[5];
+      // Evitar duplicado.
+      $planilla = DB::select(
+        'SELECT * FROM tbl_planillas a WHERE a.codigo = ?;',
+        [(string)$data['codigo']]
+      );
+      if ($planilla) {
+        return response()->json([
+          'success' => false,
+          'errors' => [
+            'duplicado' => [
+              'Ya se generó la planilla seleccionada.'
+            ],
+          ]
+        ], 400);
+      }
       // Creando un registro.
       $planilla = Planilla::create($data);
       $planilla->save();
       $uIdPlanilla = Planilla::latest('id')->first();
       // Llenando Detalle Planilla.
-      DB::select('CALL Sp_Insertar_D_planilla(?)', [$uIdPlanilla->id]);
+      if ($tipo == "PQ") {
+        DB::select('CALL Sp_Insertar_D_planilla(?)', [$uIdPlanilla->id]);
+      } elseif ($tipo == "PM") {
+        DB::select('CALL Sp_Insertar_M_Planilla(?, ?, ?)', [$uIdPlanilla->id, (int)$mesActual, (int)$anioActual]);
+      }
       // Retornando respuesta.
       return response()->json([
         'success' => true,
@@ -205,8 +229,17 @@ class PlanillaController extends Controller
   public function update(Request $request, $id)
   {
     try {
+      // Obtenemos Datos.
+      $planilla = Planilla::find($id);
+      $mesActual = date('m', strtotime(Carbon::now()));
+      $anioActual = date('Y', strtotime(Carbon::now()));
+      $tipo = DB::select('SELECT nombre FROM tbl_tipo_planillas a WHERE a.id = ?', [(int)$planilla->id_tipo_planilla]);
       // Actualizando Detalle Planilla.
-      DB::select('CALL Sp_Recalcular_planilla(?)', [$id]);
+      if ($tipo[0]->nombre == "PQ") {
+        DB::select('CALL Sp_Recalcular_planilla(?)', [$id]);
+      } elseif ($tipo[0]->nombre == "PM") {
+        DB::select('CALL Sp_Recalcular_Planilla_Mensual(?, ?, ?)', [$id, (int)$mesActual, (int)$anioActual]);
+      }
       // Retornando respuesta.
       return response()->json([
         'success' => true,
