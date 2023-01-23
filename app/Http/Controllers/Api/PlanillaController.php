@@ -62,6 +62,14 @@ class PlanillaController extends Controller
       $f_inicio_planilla = Carbon::parse("$anioActual-$mesActual-01")->format('Y-m-d');
       $f_fin_planilla = $this->dateEnd();
       $codigo = $anioActual . '-' . $meses[(int)$mesActual - 1] . '-' . $tipo[0]->nombre;
+    } elseif ($tipo[0]->nombre == "PA") {
+      $f_inicio_planilla = Carbon::parse("$anioActual-01-01")->format('Y-m-d');
+      $f_fin_planilla = Carbon::parse("$anioActual-12-12")->format('Y-m-d');
+      $codigo = $anioActual . '-' . $meses[11] . '-' . $tipo[0]->nombre;
+    } elseif ($tipo[0]->nombre == "PI") {
+      $f_inicio_planilla = Carbon::parse("$anioActual-01-01")->format('Y-m-d');
+      $f_fin_planilla = Carbon::parse("$anioActual-12-30")->format('Y-m-d');
+      $codigo = $anioActual . '-' . $meses[11] . '-' . $tipo[0]->nombre;
     }
     // Retorno.
     return [
@@ -69,6 +77,7 @@ class PlanillaController extends Controller
       $f_fin_planilla,
       $codigo,
       $tipo[0]->nombre,
+      $diaActual,
       $mesActual,
       $anioActual,
     ];
@@ -80,6 +89,7 @@ class PlanillaController extends Controller
     $planillas = Planilla::select(
       'a.id',
       'a.codigo',
+      DB::raw('(SELECT b.nombre FROM tbl_tipo_planillas b WHERE b.id = a.id_tipo_planilla) nombre_planilla'),
       DB::raw('(SELECT CONCAT_WS("-", b.nombre, b.detalle) FROM tbl_tipo_planillas b WHERE b.id = a.id_tipo_planilla) tipo_planilla'),
       'a.f_inicio_planilla',
       'a.f_fin_planilla',
@@ -129,24 +139,69 @@ class PlanillaController extends Controller
       a.dv,
       a.viaticos,
       a.sueldo_liquido
-      FROM tbl_detalle_planillas a
-      INNER JOIN tbl_empleados b ON a.id_empleado = b.id
-      LEFT JOIN tbl_puestos c ON b.id_puesto = c.id
-      LEFT JOIN tbl_departamentos d ON c.id_departamento = d.id
-      LEFT JOIN tbl_cuentas e ON b.id_cuenta = e.id
-      CROSS JOIN (SELECT @i := 0) r
-      WHERE a.id_planilla = ?
-      ORDER BY @i := @i + 1 ASC, d.nombre ASC, a.sueldo DESC;";
+    FROM tbl_detalle_planillas a
+    INNER JOIN tbl_empleados b ON a.id_empleado = b.id
+    LEFT JOIN tbl_puestos c ON b.id_puesto = c.id
+    LEFT JOIN tbl_departamentos d ON c.id_departamento = d.id
+    LEFT JOIN tbl_cuentas e ON b.id_cuenta = e.id
+    CROSS JOIN (SELECT @i := 0) r
+    WHERE a.id_planilla = ?
+    ORDER BY @i := @i + 1 ASC, d.nombre ASC, a.sueldo DESC;";
+    $detalle = DB::select($sql, [$id]);
+    return $detalle;
+  }
+
+  private function showDetailAi($id)
+  {
+    $sql = "SELECT
+      a.id,
+      @i := @i + 1 as contador,
+      a.id_empleado,
+      CONCAT_WS(' ', b.nombres, b.apellidos) colaborador,
+      d.nombre departamento,
+      c.nombre puesto,
+      b.num_cliente,
+      DATE_FORMAT(b.fecha_ingreso, '%d-%m-%Y') fecha_ingreso,
+      DATE_FORMAT(a.fecha_corte, '%d-%m-%Y') fecha_corte,
+      a.tiempo_lab_corte,
+      a.Dias_laborados,
+      a.tiempo_laborado_Ltrs,
+      a.comision,
+      a.sueldo,
+      a.ingreso_ley,
+      a.ingreso_politica,
+      a.total_aguinaldo,
+      a.tope_ingreso,
+      a.base_ingreso_isr,
+      a.renta,
+      a.pgr,
+      a.total_descuentos,
+      a.liquido_Pagar
+    FROM tbl_detalle_planillas_ai a
+    INNER JOIN tbl_empleados b ON a.id_empleado = b.id
+    LEFT JOIN tbl_puestos c ON b.id_puesto = c.id
+    LEFT JOIN tbl_departamentos d ON c.id_departamento = d.id
+    CROSS JOIN (SELECT @i := 0) r
+    WHERE a.id_planilla = ?
+    ORDER BY @i := @i + 1 ASC, d.nombre ASC, a.sueldo DESC;";
     $detalle = DB::select($sql, [$id]);
     return $detalle;
   }
 
   public function getDetailPlanilla($id)
   {
+    // Obtenemos Datos.
+    $planilla = Planilla::find($id);
+    $tipo = DB::select('SELECT nombre FROM tbl_tipo_planillas a WHERE a.id = ?', [(int)$planilla->id_tipo_planilla]);
+    if ($tipo[0]->nombre == "PQ" || $tipo[0]->nombre == "PM") {
+      $datelle = $this->showDetail($id);
+    } elseif ($tipo[0]->nombre == "PA" || $tipo[0]->nombre == "PI") {
+      $datelle = $this->showDetailAi($id);
+    }
     // Retornado respuesta.
     return response()->json([
       'success' => true,
-      'detalle' => $this->showDetail($id),
+      'detalle' => $datelle,
     ], 200);
   }
 
@@ -180,13 +235,37 @@ class PlanillaController extends Controller
       $data["f_fin_planilla"] = $values[1];
       $data["codigo"] = $values[2];
       $tipo = $values[3];
-      $mesActual = $values[4];
-      $anioActual = $values[5];
+      $diaActual = $values[4];
+      $mesActual = $values[5];
+      $anioActual = $values[6];
       // Evitar duplicado.
       $planilla = DB::select(
         'SELECT * FROM tbl_planillas a WHERE a.codigo = ?;',
         [(string)$data['codigo']]
       );
+      if ($tipo == "PA") {
+        if ((int)$mesActual < 11 || (int)$diaActual < 15) {
+          return response()->json([
+            'success' => false,
+            'errors' => [
+              'acceso' => [
+                'La planilla se puede generar a partir del 15 de Noviembre.'
+              ],
+            ]
+          ], 400);
+        }
+      } elseif ($tipo == "PI") {
+        if ((int)$mesActual < 12) {
+          return response()->json([
+            'success' => false,
+            'errors' => [
+              'acceso' => [
+                'La planilla se puede generar a partir del 1 de Diciembre.'
+              ],
+            ]
+          ], 400);
+        }
+      }
       if ($planilla) {
         return response()->json([
           'success' => false,
@@ -206,6 +285,10 @@ class PlanillaController extends Controller
         DB::select('CALL Sp_Insertar_D_planilla(?)', [$uIdPlanilla->id]);
       } elseif ($tipo == "PM") {
         DB::select('CALL Sp_Insertar_M_Planilla(?, ?, ?)', [$uIdPlanilla->id, (int)$mesActual, (int)$anioActual]);
+      } elseif ($tipo == "PA") {
+        DB::select('CALL Sp_Insertar_D_planilla_aguinaldo(?)', [$uIdPlanilla->id]);
+      } elseif ($tipo == "PI") {
+        DB::select('CALL Sp_Insertar_D_planilla_indemnizacion(?)', [$uIdPlanilla->id]);
       }
       // Retornando respuesta.
       return response()->json([
@@ -239,6 +322,10 @@ class PlanillaController extends Controller
         DB::select('CALL Sp_Recalcular_planilla(?)', [$id]);
       } elseif ($tipo[0]->nombre == "PM") {
         DB::select('CALL Sp_Recalcular_Planilla_Mensual(?, ?, ?)', [$id, (int)$mesActual, (int)$anioActual]);
+      } elseif ($tipo[0]->nombre == "PM") {
+        DB::select('CALL Sp_Recalcular_aguinaldo(?)', [$id]);
+      } elseif ($tipo[0]->nombre == "PI") {
+        DB::select('CALL Sp_Recalcular_indemnizacion(?)', [$id]);
       }
       // Retornando respuesta.
       return response()->json([
@@ -254,11 +341,18 @@ class PlanillaController extends Controller
     }
   }
 
-  public function destroy($id)
+  public function destroy($id, $idPlanilla)
   {
     try {
+      // Obtenemos Datos.
+      $planilla = Planilla::find($idPlanilla);
+      $tipo = DB::select('SELECT nombre FROM tbl_tipo_planillas a WHERE a.id = ?', [(int)$planilla->id_tipo_planilla]);
       // Eliminando registro.
-      DB::select('DELETE FROM tbl_detalle_planillas WHERE id = ?', [$id]);
+      if ($tipo[0]->nombre == "PQ" || $tipo[0]->nombre == "PM") {
+        DB::select('DELETE FROM tbl_detalle_planillas WHERE id = ?', [$id]);
+      } elseif ($tipo[0]->nombre == "PA" || $tipo[0]->nombre == "PI") {
+        DB::select('DELETE FROM tbl_detalle_planillas_ai WHERE id = ?', [$id]);
+      }
       // Retornando respuesta.
       return response()->json([
         'success' => true,

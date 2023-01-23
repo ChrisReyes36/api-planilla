@@ -137,7 +137,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('/tipos', [PlanillaController::class, 'getTypes']);
     Route::get('/detalle/{id}', [PlanillaController::class, 'getDetailPlanilla']);
     Route::put('/recalcular/detalle/{id}', [PlanillaController::class, 'update']);
-    Route::delete('/{id}', [PlanillaController::class, 'destroy']);
+    Route::delete('/{id}/{idPlanilla}', [PlanillaController::class, 'destroy']);
   });
   // Rutas Comisiones
   Route::group(['prefix' => 'comisiones'], function () {
