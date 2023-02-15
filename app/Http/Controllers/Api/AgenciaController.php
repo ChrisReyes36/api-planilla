@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Agencia;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class AgenciaController extends Controller
@@ -47,6 +48,8 @@ class AgenciaController extends Controller
       // Creando un registro.
       $agencia = Agencia::create($data);
       $agencia->save();
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, "HA INGRESADO UNA AGENCIA EN SIPLA")', [$request->user()->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,
@@ -61,10 +64,15 @@ class AgenciaController extends Controller
     }
   }
 
-  public function show($id)
+  public function show(Request $request, $id)
   {
     // Obtenemos registro.
     $agencia = Agencia::find($id);
+    // Bitácora.
+    DB::select(
+      'CALL Sp_Insertar_Biacora(?, "HA OBTENIDO INFORMACIÓN DE UNA AGENCIA PARA ACTUALIZAR EN SIPLA")',
+      [$request->user()->id]
+    );
     // Verificamos si existe el registro.
     if (!$agencia) {
       return response()->json([
@@ -103,6 +111,8 @@ class AgenciaController extends Controller
       }
       // Actualizamos registro.
       $agencia->update($data);
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, "HA ACTUALIZADO UNA AGENCIA EN SIPLA")', [$request->user()->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,

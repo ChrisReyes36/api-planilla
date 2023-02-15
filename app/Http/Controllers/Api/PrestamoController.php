@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Tool\Prestamo\ToolPrestamoController;
+use App\Http\Controllers\Tool\ToolExcelController;
 use App\Models\Prestamo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -53,15 +55,29 @@ class PrestamoController extends Controller
     return DB::select($sql);
   }
 
-  private function getPrestamos($numCliente)
+  private function getPrestamosByEmpleado($numCliente)
   {
     $sql = "SELECT a.id, a.num_prestamo, a.saldo_prestamo, a.cuota_mensual, a.cuota_quincena,
-    a.valor_descuento, a.tipo_prestamo, a.estado
+    a.valor_descuento, a.tipo_prestamo, a.estado, DATE_FORMAT(a.fecha_cancelado, '%d/%m/%Y') fecha_cancelado
     FROM tbl_prestamos a
     WHERE a.num_cliente = ?
     ORDER BY a.tipo_prestamo DESC, a.estado ASC;";
 
     return DB::select($sql, [$numCliente]);
+  }
+
+  private function getPrestamos()
+  {
+    $sql = "SELECT a.num_cliente, CONCAT_WS(' ', b.nombres, b.apellidos) razon_social,
+    a.num_prestamo, a.saldo_prestamo, a.cuota_mensual, a.cuota_quincena, a.valor_descuento,
+    CASE WHEN a.tipo_prestamo = 'I' THEN 'Interno' ELSE 'Externo' END tipo_prestamo,
+    CASE WHEN a.estado = 'A' THEN 'ACTIVO' ELSE 'INACTIVO' END estado,
+    DATE_FORMAT(a.fecha_cancelado, '%d/%m/%Y') fecha_cancelado
+    FROM tbl_prestamos a
+    INNER JOIN tbl_empleados b ON a.num_cliente = b.num_cliente
+    ORDER BY b.nombres ASC;";
+
+    return DB::select($sql);
   }
 
   public function index()
@@ -77,7 +93,7 @@ class PrestamoController extends Controller
       $prestamo->agencia = $value->agencia;
       $prestamo->departamento = $value->departamento;
       $prestamo->puesto = $value->puesto;
-      $prestamo->prestamos = $this->getPrestamos($value->num_cliente);
+      $prestamo->prestamos = $this->getPrestamosByEmpleado($value->num_cliente);
       array_push($prestamos, $prestamo);
     }
     // Retornado respuesta.
@@ -103,6 +119,8 @@ class PrestamoController extends Controller
       // Creando un registro.
       $prestamo = Prestamo::create($data);
       $prestamo->save();
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, "HA INGRESADO UN PRÉSTAMO EN SIPLA")', [$request->user()->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,
@@ -117,7 +135,7 @@ class PrestamoController extends Controller
     }
   }
 
-  public function show($id)
+  public function show(Request $request, $id)
   {
     // Obtenemos registro.
     $prestamo = Prestamo::find($id);
@@ -128,6 +146,11 @@ class PrestamoController extends Controller
         'message' => '¡Registro no encontrado!',
       ], 404);
     }
+    // Bitácora.
+    DB::select(
+      'CALL Sp_Insertar_Biacora(?, "HA OBTENIDO INFORMACIÓN DE UN PRÉSTAMO PARA ACTUALIZAR EN SIPLA")',
+      [$request->user()->id]
+    );
     // Retornando respuesta.
     return response()->json([
       'success' => true,
@@ -159,6 +182,8 @@ class PrestamoController extends Controller
       }
       // Actualizamos registro.
       $prestamo->update($data);
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, "HA ACTUALIZADO UN PRÉSTAMO EN SIPLA")', [$request->user()->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,
@@ -173,7 +198,7 @@ class PrestamoController extends Controller
     }
   }
 
-  public function destroy($id)
+  public function destroy(Request $request, $id)
   {
     try {
       // Obtenemos registro.
@@ -190,9 +215,14 @@ class PrestamoController extends Controller
       $mensaje = $prestamo->estado == 'A' ?
         '¡Préstamo desactivado exitósamente!' :
         '¡Préstamo activado exitósamente!';
+      $bitacora = $prestamo->estado == 'A' ?
+        'HA DESACTIVADO UN PRÉSTAMO EN SIPLA' :
+        'HA ACTIVADO UN PRÉSTAMO EN SIPLA';
       $data['estado'] = $estado;
       // Actualizamos registro.
       $prestamo->update($data);
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, ?)', [$request->user()->id, $bitacora]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,
@@ -205,5 +235,17 @@ class PrestamoController extends Controller
         'message' => $e->getMessage(),
       ], 500);
     }
+  }
+
+  public function exportXls(Request $request)
+  {
+    $prestamos = $this->getPrestamos();
+    $excel = new ToolExcelController();
+    $tool = new ToolPrestamoController();
+    $data = [];
+    $data = $tool->fillData($data, $prestamos);
+    // Bitácora.
+    DB::select('CALL Sp_Insertar_Biacora(?, "HA GENERADO REPORTE PRÉSTAMOS EN SIPLA")', [$request->user()->id]);
+    return $excel->createExcel($data, $tool->columnExcelFormats());
   }
 }

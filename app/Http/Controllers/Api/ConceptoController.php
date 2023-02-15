@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Concepto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class ConceptoController extends Controller
@@ -47,6 +48,8 @@ class ConceptoController extends Controller
       // Creando un registro.
       $concepto = Concepto::create($data);
       $concepto->save();
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, "HA INGRESADO UN CONCEPTO EN SIPLA")', [$request->user()->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,
@@ -61,10 +64,15 @@ class ConceptoController extends Controller
     }
   }
 
-  public function show($id)
+  public function show(Request $request, $id)
   {
     // Obtenemos registro.
     $concepto = Concepto::find($id);
+    // Bitácora.
+    DB::select(
+      'CALL Sp_Insertar_Biacora(?, "HA OBTENIDO INFORMACIÓN DE UN CONCEPTO PARA ACTUALIZAR EN SIPLA")',
+      [$request->user()->id]
+    );
     // Verificamos si existe el registro.
     if (!$concepto) {
       return response()->json([
@@ -103,6 +111,8 @@ class ConceptoController extends Controller
       }
       // Actualizamos registro.
       $concepto->update($data);
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, "HA ACTUALIZADO UN CONCEPTO EN SIPLA")', [$request->user()->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,

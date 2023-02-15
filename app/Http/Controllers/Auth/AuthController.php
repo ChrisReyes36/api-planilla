@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -35,15 +36,19 @@ class AuthController extends Controller
       ], 400);
     }
     // Buscamos usuario por código y contraseña.
-    $user = User::select('a.*')
+    $user = User::select('a.*', 'b.id_puesto', 'c.id_departamento', 'b.id as id_empleado')
       ->from('tbl_usuarios as a')
       ->join('tbl_empleados as b', function ($query) {
         $query->on('a.id_empleado', '=', 'b.id');
+      })
+      ->join('tbl_puestos as c', function ($query) {
+        $query->on('b.id_puesto', '=', 'c.id');
       })
       ->where([
         ['a.codigo', $data['codigo']],
         ['b.estado', 'A']
       ])->first();
+
     if (!$user || !Hash::check($data['contrasenia'], $user->contrasenia)) {
       return response()->json([
         'success' => false,
@@ -59,6 +64,8 @@ class AuthController extends Controller
     $token = $user->createToken('auth_token');
     $token->accessToken->expires_at = Carbon::now()->addHours(3);
     $token->accessToken->save();
+    // Bitácora.
+    DB::select('CALL Sp_Insertar_Biacora(?, "HA INICIADO SESIÓN EN SIPLA")', [$user->id]);
     // Retornando respuesta.
     return response()->json([
       'success' => true,
@@ -67,6 +74,9 @@ class AuthController extends Controller
       'token_type' => 'Bearer',
       'expires_at' => Carbon::parse($token->accessToken->expires_at)->toDateTimeString(),
       'usuario' => $user->id,
+      'puesto_usuario' => $user->id_puesto,
+      'departamento_usuario' => $user->id_departamento,
+      'empleado_usuario' => $user->id_empleado,
     ], 200);
   }
 
@@ -74,6 +84,8 @@ class AuthController extends Controller
   {
     // Obtenemos token.
     $request->user()->currentAccessToken()->delete();
+    // Bitácora.
+    DB::select('CALL Sp_Insertar_Biacora(?, "HA CERRADO SESIÓN EN SIPLA")', [$request->user()->id]);
     // Retornando respuesta.
     return response()->json([
       'success' => true,
@@ -88,7 +100,7 @@ class AuthController extends Controller
       $data = $request->all();
       $hoy = Carbon::now();
       // Obtenemos registro.
-      $usuario = User::where('codigo', $codigo);
+      $usuario = User::where('codigo', $codigo)->first();
       // Verificando si existe.
       if (!$usuario) {
         return response()->json([
@@ -117,6 +129,8 @@ class AuthController extends Controller
           (string)$codigo,
         ]
       );
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, "HA ACTUALIZADO SU CONTRASEÑA EN SIPLA")', [$usuario->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,
@@ -158,6 +172,8 @@ class AuthController extends Controller
         'message' => '¡Datos del usuario incorrectos!',
       ], 404);
     }
+    // Bitácora.
+    DB::select('CALL Sp_Insertar_Biacora(?, "HA REALIZADO BUSQUEDA PARA ACTUALIZAR CONTRASEÑA EN SIPLA")', [$usuario->id]);
     // Retornando respuesta.
     return response()->json([
       'success' => true,

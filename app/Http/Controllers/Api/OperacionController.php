@@ -55,6 +55,8 @@ class OperacionController extends Controller
       // Creando un registro.
       $operacion = Operacion::create($data);
       $operacion->save();
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, "HA INGRESADO UNA OPERACIÓN EN SIPLA")', [$request->user()->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,
@@ -69,10 +71,15 @@ class OperacionController extends Controller
     }
   }
 
-  public function show($id)
+  public function show(Request $request, $id)
   {
     // Obtenemos registro.
     $operacion = Operacion::find($id);
+    // Bitácora.
+    DB::select(
+      'CALL Sp_Insertar_Biacora(?, "HA OBTENIDO INFORMACIÓN DE UNA OPERACIÓN PARA ACTUALIZAR EN SIPLA")',
+      [$request->user()->id]
+    );
     // Verificamos si existe el registro.
     if (!$operacion) {
       return response()->json([
@@ -111,6 +118,8 @@ class OperacionController extends Controller
       }
       // Actualizamos registro.
       $operacion->update($data);
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, "HA ACTUALIZADO UNA OPERACIÓN EN SIPLA")', [$request->user()->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,

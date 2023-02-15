@@ -17,6 +17,8 @@ class Planilla extends Model
     'f_fin_planilla',
     'total_planilla',
     'id_tipo_planilla',
+    'fecha_pago',
+    'correlativo_pago',
     'estado',
   ];
 }

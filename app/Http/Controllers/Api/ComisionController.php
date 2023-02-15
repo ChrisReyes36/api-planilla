@@ -88,6 +88,8 @@ class ComisionController extends Controller
       // Creando un registro.
       $comision = Comision::create($data);
       $comision->save();
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, "HA INGRESADO UNA COMISIÓN EN SIPLA")', [$request->user()->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,
@@ -102,7 +104,7 @@ class ComisionController extends Controller
     }
   }
 
-  public function show($id)
+  public function show(Request $request, $id)
   {
     // Obtenemos registro.
     $comision = Comision::find($id);
@@ -113,6 +115,11 @@ class ComisionController extends Controller
         'message' => '¡Registro no encontrado!',
       ], 404);
     }
+    // Bitácora.
+    DB::select(
+      'CALL Sp_Insertar_Biacora(?, "HA OBTENIDO INFORMACIÓN DE UNA COMISIÓN PARA ACTUALIZAR EN SIPLA")',
+      [$request->user()->id]
+    );
     // Retornando respuesta.
     return response()->json([
       'success' => true,
@@ -162,6 +169,8 @@ class ComisionController extends Controller
       }
       // Actualizamos registro.
       $comision->update($data);
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, "HA ACTUALIZADO UNA COMISIÓN EN SIPLA")', [$request->user()->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,

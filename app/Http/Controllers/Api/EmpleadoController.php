@@ -3,13 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Tool\Empleado\ToolEmpleadoController;
+use App\Http\Controllers\Tool\ToolExcelController;
 use App\Models\Empleado;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class EmpleadoController extends Controller
 {
-  public function index()
+  private function getEmpleados()
   {
     // Obtenemos datos.
     $empleados = Empleado::select(
@@ -27,7 +29,9 @@ class EmpleadoController extends Controller
       DB::raw("CASE WHEN a.sexo = 'F' THEN 'FEMENINO' ELSE 'MASCULINO' END sexo"),
       'a.fecha_ingreso',
       'a.fecha_nacimiento',
+      DB::raw('DATE_FORMAT(a.fecha_baja, "%d/%m/%Y") fecha_baja'),
       'a.estado',
+      DB::raw("CASE WHEN a.estado = 'A' THEN 'ACTIVO' ELSE 'INACTIVO' END estado_letra"),
       'a.sueldo',
       'b.nombre as agencia',
       'c.nombre as puesto',
@@ -49,10 +53,16 @@ class EmpleadoController extends Controller
       })
       ->orderBy('a.num_cliente', 'asc')
       ->get();
+
+    return $empleados;
+  }
+
+  public function index()
+  {
     // Retornado respuesta.
     return response()->json([
       'success' => true,
-      'empleados' => $empleados,
+      'empleados' => $this->getEmpleados(),
     ], 200);
   }
 
@@ -90,7 +100,7 @@ class EmpleadoController extends Controller
     //
   }
 
-  public function destroy($id)
+  public function destroy(Request $request, $id)
   {
     try {
       // Obtenemos registro.
@@ -107,9 +117,14 @@ class EmpleadoController extends Controller
       $mensaje = $empleado->estado == 'A' ?
         '¡Empleado desactivado exitósamente!' :
         '¡Empleado activado exitósamente!';
+      $bitacora = $empleado->estado == 'A' ?
+        'HA DESACTIVADO UN EMPLEADO EN SIPLA' :
+        'HA ACTIVADO UN EMPLEADO EN SIPLA';
       $data['estado'] = $estado;
       // Actualizamos registro.
       $empleado->update($data);
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, ?)', [$request->user()->id, $bitacora]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,
@@ -122,5 +137,17 @@ class EmpleadoController extends Controller
         'message' => $e->getMessage(),
       ], 500);
     }
+  }
+
+  public function exportXls(Request $request)
+  {
+    $empleados = $this->getEmpleados();
+    $excel = new ToolExcelController();
+    $tool = new ToolEmpleadoController();
+    $data = [];
+    $data = $tool->fillData($data, $empleados);
+    // Bitácora.
+    DB::select('CALL Sp_Insertar_Biacora(?, "HA GENERADO REPORTE DE EMPLEADOS EN SIPLA")', [$request->user()->id]);
+    return $excel->createExcel($data, $tool->columnExcelFormats());
   }
 }

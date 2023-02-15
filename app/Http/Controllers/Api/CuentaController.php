@@ -51,6 +51,8 @@ class CuentaController extends Controller
       // Creando un registro.
       $cuenta = Cuenta::create($data);
       $cuenta->save();
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, "HA INGRESADO UNA CUENTA BANCARIA EN SIPLA")', [$request->user()->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,
@@ -65,10 +67,15 @@ class CuentaController extends Controller
     }
   }
 
-  public function show($id)
+  public function show(Request $request, $id)
   {
     // Obtenemos registro.
     $cuenta = Cuenta::find($id);
+    // Bitácora.
+    DB::select(
+      'CALL Sp_Insertar_Biacora(?, "HA OBTENIDO INFORMACIÓN DE UNA CUENTA BANCARIA PARA ACTUALIZAR EN SIPLA")',
+      [$request->user()->id]
+    );
     // Verificamos si existe el registro.
     if (!$cuenta) {
       return response()->json([
@@ -124,6 +131,8 @@ class CuentaController extends Controller
       }
       // Actualizamos registro.
       $cuenta->update($data);
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, "HA ACTUALIZADO UNA CUENTA BANCARIA EN SIPLA")', [$request->user()->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,
@@ -138,7 +147,7 @@ class CuentaController extends Controller
     }
   }
 
-  public function destroy($id)
+  public function destroy(Request $request, $id)
   {
     try {
       // Obtenemos registro.
@@ -155,9 +164,14 @@ class CuentaController extends Controller
       $mensaje = $cuenta->estado == 'A' ?
         '¡Cuenta desactivada exitósamente!' :
         '¡Cuenta activada exitósamente!';
+      $bitacora = $cuenta->estado == 'A' ?
+        'HA DESACTIVADO UNA CUENTA BANCARIA EN SIPLA' :
+        'HA ACTIVADO UNA CUENTA BANCARIA EN SIPLA';
       $data['estado'] = $estado;
       // Actualizamos registro.
       $cuenta->update($data);
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, ?)', [$request->user()->id, $bitacora]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,

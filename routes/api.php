@@ -13,8 +13,10 @@ use App\Http\Controllers\Api\PermisoController;
 use App\Http\Controllers\Api\PlanillaController;
 use App\Http\Controllers\Api\PrestamoController;
 use App\Http\Controllers\Api\PuestoController;
+use App\Http\Controllers\Api\ReporteController;
 use App\Http\Controllers\Api\RutaController;
 use App\Http\Controllers\Api\UsuarioController;
+use App\Http\Controllers\Api\VacacionController;
 use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -106,6 +108,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('/', [EmpleadoController::class, 'index']);
     Route::get('/estado/activos', [EmpleadoController::class, 'showActivated']);
     Route::delete('/{id}', [EmpleadoController::class, 'destroy']);
+    Route::post('/', [EmpleadoController::class, 'exportXls']);
   });
   // Rutas Conceptos
   Route::group(['prefix' => 'conceptos'], function () {
@@ -134,9 +137,12 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('/', [PlanillaController::class, 'index']);
     Route::post('/', [PlanillaController::class, 'store']);
     Route::post('/exportar/{id}', [PlanillaController::class, 'exportExcel']);
+    Route::get('/exportar/csv/planilla/{id}', [PlanillaController::class, 'exportCsv']);
     Route::get('/tipos', [PlanillaController::class, 'getTypes']);
     Route::get('/detalle/{id}', [PlanillaController::class, 'getDetailPlanilla']);
     Route::put('/recalcular/detalle/{id}', [PlanillaController::class, 'update']);
+    Route::put('/actualizar/pago/{id}', [PlanillaController::class, 'updatePayment']);
+    Route::put('/estado/aprobada/planilla/registro/{id}', [PlanillaController::class, 'updateState']);
     Route::delete('/{id}/{idPlanilla}', [PlanillaController::class, 'destroy']);
   });
   // Rutas Comisiones
@@ -153,5 +159,25 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('/{id}', [PrestamoController::class, 'show']);
     Route::put('/{id}', [PrestamoController::class, 'update']);
     Route::delete('/{id}', [PrestamoController::class, 'destroy']);
+    Route::post('/exportar', [PrestamoController::class, 'exportXls']);
+  });
+  // Rutas Reportes
+  Route::group(['prefix' => 'reportes'], function () {
+    Route::get('/constancia/ingreso/{idEmpleado}', [ReporteController::class, 'contanciaIngreso']);
+    Route::get('/constancia/empleo/{idEmpleado}', [ReporteController::class, 'contanciaEmpleo']);
+    Route::get('/cartas/renta/{anio}', [ReporteController::class, 'cartasRenta']);
+    Route::get('/recibo/vacacion/{idEmpleado}', [ReporteController::class, 'reciboVacacion']);
+    Route::get('/recibo/finiquito/{anio}', [ReporteController::class, 'reciboFiniquito']);
+    Route::get('/boleta/quincenal/{idPlanilla}/{idEmpleado?}', [ReporteController::class, 'boletaQuincenal']);
+    Route::get('/boletas/aguinaldo/{anio}/{idEmpleado?}', [ReporteController::class, 'boletasAguinaldo']);
+  });
+  // Rutas Vacaciones
+  Route::group(['prefix' => 'vacaciones'], function () {
+    Route::get('/', [VacacionController::class, 'index']);
+    Route::post('/', [VacacionController::class, 'store']);
+    Route::get('/{id}', [VacacionController::class, 'show']);
+    Route::put('/{id}', [VacacionController::class, 'update']);
+    Route::delete('/{id}', [VacacionController::class, 'destroy']);
+    Route::post('/exportar', [VacacionController::class, 'exportXls']);
   });
 });

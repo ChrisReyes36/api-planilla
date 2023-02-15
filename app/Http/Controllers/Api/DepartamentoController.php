@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Departamento;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class DepartamentoController extends Controller
@@ -46,6 +47,8 @@ class DepartamentoController extends Controller
       // Creando un registro.
       $departamento = Departamento::create($data);
       $departamento->save();
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, "HA INGRESADO UN DEPARTAMENTO EN SIPLA")', [$request->user()->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,
@@ -60,10 +63,15 @@ class DepartamentoController extends Controller
     }
   }
 
-  public function show($id)
+  public function show(Request $request, $id)
   {
     // Obtenemos registro.
     $departamento = Departamento::find($id);
+    // Bitácora.
+    DB::select(
+      'CALL Sp_Insertar_Biacora(?, "HA OBTENIDO INFORMACIÓN DE UN DEPARTAMENTO PARA ACTUALIZAR EN SIPLA")',
+      [$request->user()->id]
+    );
     // Verificamos si existe el registro.
     if (!$departamento) {
       return response()->json([
@@ -102,6 +110,8 @@ class DepartamentoController extends Controller
       }
       // Actualizamos registro.
       $departamento->update($data);
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, "HA ACTUALIZADO UN DEPARTAMENTO EN SIPLA")', [$request->user()->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,

@@ -142,6 +142,8 @@ class AsignacionController extends Controller
       // Creando un registro.
       $asignacion = Asignacion::create($data);
       $asignacion->save();
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, "HA INGRESADO UNA ASIGNACIÓN EN SIPLA")', [$request->user()->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,
@@ -156,7 +158,7 @@ class AsignacionController extends Controller
     }
   }
 
-  public function show($id)
+  public function show(Request $request, $id)
   {
     // Obtenemos registro.
     $asignacion = Asignacion::find($id);
@@ -167,6 +169,11 @@ class AsignacionController extends Controller
         'message' => '¡Registro no encontrado!',
       ], 404);
     }
+    // Bitácora.
+    DB::select(
+      'CALL Sp_Insertar_Biacora(?, "HA OBTENIDO INFORMACIÓN DE UNA ASIGNACIÓN PARA ACTUALIZAR EN SIPLA")',
+      [$request->user()->id]
+    );
     // Retornando respuesta.
     return response()->json([
       'success' => true,
@@ -215,6 +222,8 @@ class AsignacionController extends Controller
       }
       // Actualizamos registro.
       $asignacion->update($data);
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, "HA ACTUALIZADO UNA ASIGNACIÓN EN SIPLA")', [$request->user()->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,
@@ -229,7 +238,7 @@ class AsignacionController extends Controller
     }
   }
 
-  public function destroy($id)
+  public function destroy(Request $request, $id)
   {
     try {
       // Obtenemos registro.
@@ -246,9 +255,14 @@ class AsignacionController extends Controller
       $mensaje = $asignacion->estado == 'A' ?
         '¡Asignación desactivada exitósamente!' :
         '¡Asignación activada exitósamente!';
+      $bitacora = $asignacion->estado == 'A' ?
+        'HA DESACTIVADO UNA ASIGNACIÓN EN SIPLA' :
+        'HA ACTIVADO UNA ASIGNACIÓN EN SIPLA';
       $data['estado'] = $estado;
       // Actualizamos registro.
       $asignacion->update($data);
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, ?)', [$request->user()->id, $bitacora]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,

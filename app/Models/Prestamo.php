@@ -19,6 +19,7 @@ class Prestamo extends Model
     'cuota_quincena',
     'valor_descuento',
     'tipo_prestamo',
+    'fecha_cancelado',
     'estado',
   ];
 }

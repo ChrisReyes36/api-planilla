@@ -88,6 +88,8 @@ class UsuarioController extends Controller
       $data['contrasenia'] = bcrypt($data['contrasenia']);
       $usuario = User::create($data);
       $usuario->save();
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, "HA INGRESADO UN USUARIO EN SIPLA")', [$request->user()->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,
@@ -102,10 +104,15 @@ class UsuarioController extends Controller
     }
   }
 
-  public function show($id)
+  public function show(Request $request, $id)
   {
     // Obtenemos registro.
     $usuario = User::find($id);
+    // Bitácora.
+    DB::select(
+      'CALL Sp_Insertar_Biacora(?, "HA OBTENIDO INFORMACIÓN DE UN USUARIO PARA ACTUALIZAR EN SIPLA")',
+      [$request->user()->id]
+    );
     // Verificamos si existe el registro.
     if (!$usuario) {
       return response()->json([
@@ -151,6 +158,8 @@ class UsuarioController extends Controller
       $request->contrasenia ? $data['contrasenia'] = bcrypt($data['contrasenia']) : false;
       // Actualizamos registro.
       $usuario->update($data);
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, "HA ACTUALIZADO UN USUARIO EN SIPLA")', [$request->user()->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,
@@ -165,7 +174,7 @@ class UsuarioController extends Controller
     }
   }
 
-  public function destroy($id)
+  public function destroy(Request $request, $id)
   {
     try {
       // Obtenemos registro.
@@ -182,9 +191,14 @@ class UsuarioController extends Controller
       $mensaje = $empleado->estado == 'A' ?
         '¡Usuario desactivado exitósamente!' :
         '¡Usuario activado exitósamente!';
+      $bitacora = $empleado->estado == 'A' ?
+        'HA DESACTIVADO UN USUARIO EN SIPLA' :
+        'HA ACTIVADO UN USUARIO EN SIPLA';
       $data['estado'] = $estado;
       // Actualizamos registro.
       $empleado->update($data);
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, ?)', [$request->user()->id, $bitacora]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,

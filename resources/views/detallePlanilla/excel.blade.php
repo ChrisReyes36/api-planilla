@@ -30,6 +30,11 @@
       <td>ISSS</td>
       <td>AFP</td>
       <td>IPSFA</td>
+      @if($data->mes == 12 && $data->dia <= 15)
+        <td>Aguinaldo Gravado</td>
+      @elseif($data->mes == 12 && $data->dia > 15)
+        <td>Indemnización Gravada</td>
+      @endif
       <td>15na-ISSS-AFP-IPSFA</td>
       <td>ISR</td>
       <td>Total descuentos</td>
@@ -37,9 +42,10 @@
       <td>PGR</td>
       <td>FSV</td>
       <td>FOSAFI</td>
-      <td>Anticipos</td>
+      <td>Vialidad</td>
       <td>D.V</td>
       <td>Viáticos</td>
+      <td>Reintegros</td>
       <td>Líquido a Pagar</td>
     </tr>
     @foreach ($data->detalles as $key)
@@ -62,6 +68,11 @@
       <td>{{ $key->isss }}</td>
       <td>{{ $key->afp }}</td>
       <td>{{ $key->ipsfa }}</td>
+      @if($data->mes == 12 && $data->dia <= 15)
+        <td>{{ $key->base_agravado }}</td>
+      @elseif($data->mes == 12 && $data->dia > 15)
+        <td>{{ $key->base_agravado }}</td>
+      @endif
       <td>{{ $key->t_quincena_desc }}</td>
       <td>{{ $key->renta }}</td>
       <td>{{ $key->total_descuentos }}</td>
@@ -72,6 +83,7 @@
       <td>{{ $key->anticipos }}</td>
       <td>{{ $key->dv }}</td>
       <td>{{ $key->viaticos }}</td>
+      <td>{{ $key->reintegros }}</td>
       <td>{{ $key->sueldo_liquido }}</td>
     </tr>
     @endforeach

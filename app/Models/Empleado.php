@@ -30,6 +30,7 @@ class Empleado extends Model
     'sexo',
     'fecha_ingreso',
     'fecha_nacimiento',
+    'fecha_baja',
     'estado',
     'sueldo',
     'id_agencia',

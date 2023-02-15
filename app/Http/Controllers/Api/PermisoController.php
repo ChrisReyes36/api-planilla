@@ -138,6 +138,8 @@ class PermisoController extends Controller
       // Creando un registro.
       $permiso = Permiso::create($data);
       $permiso->save();
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, "HA INGRESADO UN PERMISO EN SIPLA")', [$request->user()->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,
@@ -152,10 +154,15 @@ class PermisoController extends Controller
     }
   }
 
-  public function show($id)
+  public function show(Request $request, $id)
   {
     // Obtenemos registro.
     $permiso = Permiso::find($id);
+    // Bitácora.
+    DB::select(
+      'CALL Sp_Insertar_Biacora(?, "HA OBTENIDO INFORMACIÓN DE UN PERMISO PARA ACTUALIZAR EN SIPLA")',
+      [$request->user()->id]
+    );
     // Verificamos si existe el registro.
     if (!$permiso) {
       return response()->json([
@@ -237,6 +244,8 @@ class PermisoController extends Controller
       }
       // Actualizamos registro.
       $permiso->update($data);
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, "HA ACTUALIZADO UN PERMISO EN SIPLA")', [$request->user()->id]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,
@@ -251,7 +260,7 @@ class PermisoController extends Controller
     }
   }
 
-  public function destroy($id)
+  public function destroy(Request $request, $id)
   {
     try {
       // Obtenemos registro.
@@ -268,9 +277,14 @@ class PermisoController extends Controller
       $mensaje = $permiso->estado == 'A' ?
         '¡Permiso desactivado exitósamente!' :
         '¡Permiso activado exitósamente!';
+      $bitacora = $permiso->estado == 'A' ?
+        'HA DESACTIVADO UN PERMISO EN SIPLA' :
+        'HA ACTIVADO UN PERMISO EN SIPLA';
       $data['estado'] = $estado;
       // Actualizamos registro.
       $permiso->update($data);
+      // Bitácora.
+      DB::select('CALL Sp_Insertar_Biacora(?, ?)', [$request->user()->id, $bitacora]);
       // Retornando respuesta.
       return response()->json([
         'success' => true,

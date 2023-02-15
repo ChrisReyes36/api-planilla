@@ -1,0 +1,136 @@
+* {
+  margin     : 0;
+  padding    : 0;
+  font-family: Arial, Helvetica, sans-serif;
+  font-style : normal;
+  font-size  : 16.5px;
+}
+
+.subtitle {
+  color: rgb(0, 128, 128);
+}
+
+.l-1 {
+  width      : 30%;
+  margin-left: 10px;
+}
+
+.l-2 {
+  width     : 15%;
+  margin-top: 50px;
+}
+
+.contenedor-imagenes {
+  position: absolute;
+  top     : 0;
+  width   : 100%;
+  height  : 180px;
+}
+
+.contenedor-imagenes img:last-child {
+  margin-left: 414px;
+}
+
+.contenedor-texto {
+  display        : flex;
+  margin-top     : 50px;
+  justify-content: center;
+  align-items    : center;
+  padding        : 115px;
+  text-align     : justify;
+}
+
+.contenedor-texto>h3 {
+  margin-bottom: 10px;
+}
+
+.lineado {
+  line-height: 1.6;
+}
+
+.contenedor-tabla {
+  display        : flex;
+  margin-top     : -200px;
+  justify-content: center;
+  align-items    : center;
+  padding        : 115px;
+  text-align     : justify;
+}
+
+table {
+  width          : 100%;
+  border         : 1px solid #000;
+  border-collapse: collapse;
+}
+
+.cs th,
+.cs td {
+  background-color: rgb(217, 217, 217);
+  width           : 50%;
+  vertical-align  : top;
+  text-align      : center;
+  border          : 1px solid #000;
+  border-collapse : collapse;
+  padding         : 0.3em;
+}
+
+.contenedor-footer {
+  display        : flex;
+  margin-top     : -200px;
+  justify-content: center;
+  align-items    : center;
+  padding        : 115px;
+  text-align     : justify;
+}
+
+.contenedor-imagenes-footer {
+  position: absolute;
+  bottom  : 0;
+  width   : 100%;
+  height  : 120px;
+}
+
+.contenedor-imagenes-footer img {
+  object-fit : cover;
+  width      : 80%;
+  margin-left: 80px;
+}
+
+.cr tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.cr th,
+.cr td {
+  width          : 50%;
+  vertical-align : top;
+  text-align     : center;
+  border-collapse: collapse;
+  padding        : 0.3em;
+}
+
+.container {
+  display              : grid;
+  text-align           : center;
+  width                : 100%;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap             : 20px;
+}
+
+.container>div {
+  display       : inline-block;
+  text-align    : center;
+  vertical-align: middle;
+  padding-top   : 20%;
+  width         : 200px;
+  height        : 70px;
+}
+
+.ca th,
+.ca td {
+  width          : 50%;
+  vertical-align : top;
+  text-align     : center;
+  border-collapse: collapse;
+  padding        : 0.3em;
+}
