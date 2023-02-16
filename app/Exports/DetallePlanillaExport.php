@@ -132,19 +132,19 @@ class DetallePlanillaExport implements FromView, Responsable, WithColumnWidths, 
     $this->alignmentSetVertical("A:$letra", 'center');
 
     $sheet->mergeCells("A1:" . $letra . "1");
-    $this->fontSetBold("A1:" . $letra . "1");
+    // $this->fontSetBold("A1:" . $letra . "1");
     $this->fillSetTypeColorRGB("A1:" . $letra . "1", 'solid', 'fcfcfc');
-    $this->fontSetSize("A1:" . $letra . "1", 48);
+    $this->fontSetSize("A1:" . $letra . "1", 28);
 
     $sheet->mergeCells("A2:" . $letra . "2");
-    $this->fontSetBold("A2:" . $letra . "2");
+    // $this->fontSetBold("A2:" . $letra . "2");
     $this->fillSetTypeColorRGB("A2:" . $letra . "2", 'solid', 'fcfcfc');
-    $this->fontSetSize("A2:" . $letra . "2", 48);
+    $this->fontSetSize("A2:" . $letra . "2", 28);
 
     $sheet->mergeCells("A3:" . $letra . "3");
-    $this->fontSetBold("A3:" . $letra . "3");
+    // $this->fontSetBold("A3:" . $letra . "3");
     $this->fillSetTypeColorRGB("A3:" . $letra . "3", 'solid', 'fcfcfc');
-    $this->fontSetSize("A3:" . $letra . "3", 48);
+    $this->fontSetSize("A3:" . $letra . "3", 28);
 
     $this->fontSetSize("A4:" . $letra . "4", 10);
     $this->fontSetBold("A4:" . $letra . "4");
@@ -155,6 +155,7 @@ class DetallePlanillaExport implements FromView, Responsable, WithColumnWidths, 
     $this->fillSetTypeColorRGB("A4:$letra{$body}", 'solid', 'fcfcfc');
     $this->bordersSetAllBordersStyle("A4:$letra{$body}", 'thin');
 
+    $this->fontSetBold("A{$body}:$letra{$body}");
     $sheet->mergeCells("A{$body}:G{$body}");
     $this->alignmentSetHorizontal("B5:B{$body}", 'left');
     $this->alignmentSetHorizontal("C5:C{$body}", 'left');

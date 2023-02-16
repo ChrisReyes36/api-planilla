@@ -61,7 +61,7 @@ class DetallePlanillaAExport implements FromView, Responsable, WithColumnWidths,
       'M' => 20,
       'N' => 20,
       'O' => 18,
-      'P' => 15,
+      'P' => 17,
       'Q' => 15,
       'R' => 15,
       'S' => 15,
@@ -108,19 +108,19 @@ class DetallePlanillaAExport implements FromView, Responsable, WithColumnWidths,
     $this->alignmentSetVertical('A:T', 'center');
 
     $sheet->mergeCells('A1:T1');
-    $this->fontSetBold('A1:T1');
+    // $this->fontSetBold('A1:T1');
     $this->fillSetTypeColorRGB('A1:T1', 'solid', 'fcfcfc');
-    $this->fontSetSize('A1:T1', 48);
+    $this->fontSetSize('A1:T1', 28);
 
     $sheet->mergeCells('A2:T2');
-    $this->fontSetBold('A2:T2');
+    // $this->fontSetBold('A2:T2');
     $this->fillSetTypeColorRGB('A2:T2', 'solid', 'fcfcfc');
-    $this->fontSetSize('A2:T2', 48);
+    $this->fontSetSize('A2:T2', 28);
 
     $sheet->mergeCells('A3:T3');
-    $this->fontSetBold('A3:T3');
+    // $this->fontSetBold('A3:T3');
     $this->fillSetTypeColorRGB('A3:T3', 'solid', 'fcfcfc');
-    $this->fontSetSize('A3:T3', 48);
+    $this->fontSetSize('A3:T3', 28);
 
     $this->fontSetSize('A4:T4', 10);
     $this->fontSetBold('A4:T4');
@@ -131,6 +131,7 @@ class DetallePlanillaAExport implements FromView, Responsable, WithColumnWidths,
     $this->fillSetTypeColorRGB("A4:T{$body}", 'solid', 'fcfcfc');
     $this->bordersSetAllBordersStyle("A4:T{$body}", 'thin');
 
+    $this->fontSetBold("A{$body}:T{$body}");
     $sheet->mergeCells("A{$body}:J{$body}");
     $this->alignmentSetHorizontal("B5:B{$body}", 'left');
     $this->alignmentSetHorizontal("C5:C{$body}", 'left');
