@@ -73,12 +73,24 @@
           <tr>
             <th>Días Pagados</th>
             <td>{{ $key->DIAS_TRABAJADOS }}</td>
+            <th>DV</th>
+            <td>${{ number_format($key->DV, 2) }}</td>
+          </tr>
+          <tr>
+            <th>DEVENGADO</th>
+            <td>${{ number_format($key->DEVENGADO, 2) }}</td>
+            <th>Reintegros</th>
+            <td>${{ number_format($key->REINTEGROS, 2) }}</td>
+          </tr>
+          <tr>
+            <th></th>
+            <td></td>
             <th>Procuraduría</th>
             <td>${{ number_format($key->PGR, 2) }}</td>
           </tr>
           <tr>
-            <th><b>DEVENGADO</b></th>
-            <td>${{ number_format($key->DEVENGADO, 2) }}</td>
+            <th></th>
+            <td></td>
             <th>IPSFA</th>
             <td>${{ number_format($key->IPSFA, 2) }}</td>
           </tr>
@@ -116,12 +128,24 @@
           <tr>
             <th>Días Pagados</th>
             <td>{{ $key->DIAS_TRABAJADOS }}</td>
+            <th>DV</th>
+            <td>${{ number_format($key->DV, 2) }}</td>
+          </tr>
+          <tr>
+            <th>DEVENGADO</th>
+            <td>${{ number_format($key->DEVENGADO, 2) }}</td>
+            <th>Reintegros</th>
+            <td>${{ number_format($key->REINTEGROS, 2) }}</td>
+          </tr>
+          <tr>
+            <th></th>
+            <td></td>
             <th>Procuraduría</th>
             <td>${{ number_format($key->PGR, 2) }}</td>
           </tr>
           <tr>
-            <th><b>DEVENGADO</b></th>
-            <td>${{ number_format($key->DEVENGADO, 2) }}</td>
+            <th></th>
+            <td></td>
             <th>IPSFA</th>
             <td>${{ number_format($key->IPSFA, 2) }}</td>
           </tr>
@@ -159,6 +183,18 @@
           <tr>
             <th><b>DEVENGADO</b></th>
             <td>${{ number_format($key->DEVENGADO, 2) }}</td>
+            <th>DV</th>
+            <td>${{ number_format($key->DV, 2) }}</td>
+          </tr>
+          <tr>
+            <th></th>
+            <td></td>
+            <th>Reintegros</th>
+            <td>${{ number_format($key->REINTEGROS, 2) }}</td>
+          </tr>
+          <tr>
+            <th></th>
+            <td></td>
             <th>Procuraduría</th>
             <td>${{ number_format($key->PGR, 2) }}</td>
           </tr>

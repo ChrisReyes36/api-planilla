@@ -214,7 +214,7 @@ class ReporteController extends Controller
     // Bitácora.
     // DB::select('CALL Sp_Insertar_Biacora(?, ?)', [$request->user()->id, $bitacora]);
     // Retornamos Respuesta.
-    return $pdf->stream();
+    // return $pdf->stream();
     return $pdf->download('boletas_quincenales.pdf');
   }
 
