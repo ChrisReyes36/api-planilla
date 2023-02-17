@@ -37,6 +37,13 @@ class EmpleadoController extends Controller
       'c.nombre as puesto',
       'd.nombre as departamento',
       'e.num_cuenta',
+      DB::raw('DATE_FORMAT(a.fecha_expedicion, "%d/%m/%Y") fecha_expedicion'),
+      DB::raw('DATE_FORMAT(a.fecha_expiracion, "%d/%m/%Y") fecha_expiracion'),
+      'a.lugar_expedicion',
+      'a.edad',
+      'a.profesion',
+      'a.estado_civil',
+      'a.nacionalidad',
     )
       ->from('tbl_empleados as a')
       ->join('tbl_agencias as b', function ($query) {

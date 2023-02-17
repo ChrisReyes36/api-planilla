@@ -30,7 +30,14 @@ class ToolEmpleadoController extends Controller
       'Departamento', //P
       'Puesto', //Q
       'Cuenta Bancaria', //R
-      'Estado', //S
+      'Fecha Expedición', //S
+      'Fecha Expiración', //T
+      'Lugar Expedición', //U
+      'Edad', //V
+      'Profesión', //W
+      'Estado Civil', //X
+      'Nacionalidad', //Y
+      'Estado', //Z
     ];
   }
 
@@ -69,6 +76,13 @@ class ToolEmpleadoController extends Controller
         $value->departamento,
         $value->puesto,
         $value->num_cuenta,
+        $value->fecha_expedicion,
+        $value->fecha_expiracion,
+        $value->lugar_expedicion,
+        $value->edad,
+        $value->profesion,
+        $value->estado_civil,
+        $value->nacionalidad,
         $value->estado_letra,
       ];
       array_push($array, $arrayAux);

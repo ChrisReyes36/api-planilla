@@ -13,6 +13,8 @@
   @foreach ($data['detalle'] as $key)
   <div class="contenedor-texto">
     <div>
+      <h2 style="text-align: center !important;">ACACES de R.L</h2>
+      <br>
       <h3 style="text-align: center !important;">Señor(a) (ita): {{ $key->NOMBRE_COMPLETO }}</h3>
       <br>
       <h4 style="text-align: center !important;">{{ $key->NOMBRE }}</h4>
@@ -67,30 +69,18 @@
           <tr>
             <th>Aguinaldo Gravado</th>
             <td>${{ $key->BASE_AGRAVADO }}</td>
-            <th>Viáticos</th>
-            <td>${{ number_format($key->VIATICOS, 2) }}</td>
-          </tr>
-          <tr>
-            <th>Días Pagados</th>
-            <td>{{ $key->DIAS_TRABAJADOS }}</td>
             <th>DV</th>
             <td>${{ number_format($key->DV, 2) }}</td>
           </tr>
           <tr>
-            <th>DEVENGADO</th>
-            <td>${{ number_format($key->DEVENGADO, 2) }}</td>
-            <th>Reintegros</th>
-            <td>${{ number_format($key->REINTEGROS, 2) }}</td>
-          </tr>
-          <tr>
-            <th></th>
-            <td></td>
+            <th>Días Pagados</th>
+            <td>{{ $key->DIAS_TRABAJADOS }}</td>
             <th>Procuraduría</th>
             <td>${{ number_format($key->PGR, 2) }}</td>
           </tr>
           <tr>
-            <th></th>
-            <td></td>
+            <th>DEVENGADO</th>
+            <td>${{ number_format($key->DEVENGADO, 2) }}</td>
             <th>IPSFA</th>
             <td>${{ number_format($key->IPSFA, 2) }}</td>
           </tr>
@@ -107,6 +97,23 @@
             <td>
               <hr>
               <b>${{ number_format($key->TOTAL_DESCUENTOS, 2) }}</b>
+            </td>
+          </tr>
+          <tr>
+            <th></th>
+            <td></td>
+            <th>(+)Viáticos</th>
+            <td>
+              <hr>
+              ${{ number_format($key->VIATICOS, 2) }}
+            </td>
+          </tr>
+          <tr>
+            <th></th>
+            <td></td>
+            <th>(+)Reintegros</th>
+            <td>
+              ${{ number_format($key->REINTEGROS, 2) }}
             </td>
           </tr>
           <tr>
@@ -122,30 +129,18 @@
           <tr>
             <th>Indemnización Gravada</th>
             <td>${{ $key->BASE_AGRAVADO }}</td>
-            <th>Viáticos</th>
-            <td>${{ number_format($key->VIATICOS, 2) }}</td>
-          </tr>
-          <tr>
-            <th>Días Pagados</th>
-            <td>{{ $key->DIAS_TRABAJADOS }}</td>
             <th>DV</th>
             <td>${{ number_format($key->DV, 2) }}</td>
           </tr>
           <tr>
-            <th>DEVENGADO</th>
-            <td>${{ number_format($key->DEVENGADO, 2) }}</td>
-            <th>Reintegros</th>
-            <td>${{ number_format($key->REINTEGROS, 2) }}</td>
-          </tr>
-          <tr>
-            <th></th>
-            <td></td>
+            <th>Días Pagados</th>
+            <td>{{ $key->DIAS_TRABAJADOS }}</td>
             <th>Procuraduría</th>
             <td>${{ number_format($key->PGR, 2) }}</td>
           </tr>
           <tr>
-            <th></th>
-            <td></td>
+            <th>DEVENGADO</th>
+            <td>${{ number_format($key->DEVENGADO, 2) }}</td>
             <th>IPSFA</th>
             <td>${{ number_format($key->IPSFA, 2) }}</td>
           </tr>
@@ -162,6 +157,23 @@
             <td>
               <hr>
               <b>${{ number_format($key->TOTAL_DESCUENTOS, 2) }}</b>
+            </td>
+          </tr>
+          <tr>
+            <th></th>
+            <td></td>
+            <th>(+)Viáticos</th>
+            <td>
+              <hr>
+              ${{ number_format($key->VIATICOS, 2) }}
+            </td>
+          </tr>
+          <tr>
+            <th></th>
+            <td></td>
+            <th>(+)Reintegros</th>
+            <td>
+              ${{ number_format($key->REINTEGROS, 2) }}
             </td>
           </tr>
           <tr>
@@ -177,26 +189,14 @@
           <tr>
             <th>Días Pagados</th>
             <td>{{ $key->DIAS_TRABAJADOS }}</td>
-            <th>Viáticos</th>
-            <td>${{ number_format($key->VIATICOS, 2) }}</td>
+            <th>Procuraduría</th>
+            <td>${{ number_format($key->PGR, 2) }}</td>
           </tr>
           <tr>
             <th><b>DEVENGADO</b></th>
             <td>${{ number_format($key->DEVENGADO, 2) }}</td>
             <th>DV</th>
             <td>${{ number_format($key->DV, 2) }}</td>
-          </tr>
-          <tr>
-            <th></th>
-            <td></td>
-            <th>Reintegros</th>
-            <td>${{ number_format($key->REINTEGROS, 2) }}</td>
-          </tr>
-          <tr>
-            <th></th>
-            <td></td>
-            <th>Procuraduría</th>
-            <td>${{ number_format($key->PGR, 2) }}</td>
           </tr>
           <tr>
             <th></th>
@@ -217,6 +217,23 @@
             <td>
               <hr>
               <b>${{ number_format($key->TOTAL_DESCUENTOS, 2) }}</b>
+            </td>
+          </tr>
+          <tr>
+            <th></th>
+            <td></td>
+            <th>(+)Viáticos</th>
+            <td>
+              <hr>
+              ${{ number_format($key->VIATICOS, 2) }}
+            </td>
+          </tr>
+          <tr>
+            <th></th>
+            <td></td>
+            <th>(+)Reintegros</th>
+            <td>
+              ${{ number_format($key->REINTEGROS, 2) }}
             </td>
           </tr>
           <tr>
@@ -269,8 +286,6 @@
           </th>
         </tr>
       </table>
-      <br />
-      <br />
       <br />
       <h4 style="text-align: left !important;">San salvador, {{ $data['fecha'] }}</h4>
     </div>
