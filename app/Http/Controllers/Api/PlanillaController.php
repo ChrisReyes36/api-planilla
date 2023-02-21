@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Exports\DetallePlanillaAExport;
 use App\Exports\DetallePlanillaExport;
 use App\Exports\DetallePlanillaIExport;
+use App\Exports\DetalleRentaPlanillaExport;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Tool\Planilla\ToolPlanillaController;
 use App\Http\Controllers\Tool\ToolExcelController;
@@ -179,6 +180,35 @@ class PlanillaController extends Controller
            LEFT JOIN tbl_departamentos d ON c.id_departamento = d.id
            CROSS JOIN (SELECT @i := 0) r
            WHERE a.id_planilla = ?;";
+    $detalle = DB::select($sql, [$id, $id]);
+    return $detalle;
+  }
+
+  private function showDetailRentaPlanilla($id)
+  {
+    $sql = "SELECT @i := @i + 1 as contador, tbl_p.* FROM (
+      SELECT a.id, a.id_empleado, CONCAT_WS(' ', b.nombres, b.apellidos) colaborador, d.nombre departamento, c.nombre puesto,
+        DATE_FORMAT(b.fecha_ingreso, '%d-%m-%Y') fecha_ingreso, DATE_FORMAT(f.f_inicio_planilla, '%d') dia_inicio_planilla,
+         DATE_FORMAT(f.f_inicio_planilla, '%m') mes_inicio_planilla, b.num_cliente, a.calculo_salario, a.bonos, a.bonos_variables,
+        a.vacaciones, a.comision, (a.calculo_salario + a.bonos + a.vacaciones + a.comision) t_quincena, a.isss, a.afp, a.ipsfa,
+        a.base_agravado, (a.calculo_salario + a.bonos + a.vacaciones + a.comision + a.bonos_variables) - (a.isss + a.afp + a.ipsfa) t_quincena_desc,
+         a.renta
+      FROM tbl_detalle_planillas a
+      INNER JOIN tbl_empleados b ON a.id_empleado = b.id
+      LEFT JOIN tbl_puestos c ON b.id_puesto = c.id
+      LEFT JOIN tbl_departamentos d ON c.id_departamento = d.id
+      LEFT JOIN tbl_cuentas e ON b.id_cuenta = e.id
+      INNER JOIN tbl_planillas f ON a.id_planilla = f.id
+      WHERE a.id_planilla = ? AND a.renta > 0
+      ORDER BY b.nombres
+    )tbl_p
+    CROSS JOIN (SELECT @i := 0) r
+    UNION ALL
+    SELECT 'TOTALES:', '', '', '', '', '', '', '', '', '', SUM(a.calculo_salario), SUM(a.bonos), SUM(a.bonos_variables), SUM(a.vacaciones),
+      SUM(a.comision), (SUM(a.calculo_salario) + SUM(a.bonos) + SUM(a.vacaciones + a.comision)), SUM(a.isss), SUM(a.afp), SUM(a.ipsfa), SUM(a.base_agravado),
+      ((SUM(a.calculo_salario) + SUM(a.bonos) + SUM(a.vacaciones) + SUM(a.comision) + SUM(a.bonos_variables)) - (SUM(a.isss) + SUM(a.afp) + SUM(a.ipsfa))), SUM(a.renta)
+    FROM tbl_detalle_planillas a
+    WHERE a.id_planilla = ? AND a.renta > 0;";
     $detalle = DB::select($sql, [$id, $id]);
     return $detalle;
   }
@@ -442,6 +472,7 @@ class PlanillaController extends Controller
       'anio' => null,
       'mes' => null,
       'dia' => null,
+      'encabezado' => null,
       'detalles' => [],
     ];
   }
@@ -491,5 +522,31 @@ class PlanillaController extends Controller
     DB::select('CALL Sp_Insertar_Biacora(?, ?)', [$request->user()->id, $bitacora]);
     // Retornando Respuesta.
     return $excel->createCsv($data);
+  }
+
+  public function exportRentaExcel(Request $request, $id)
+  {
+    // Obtenemos Datos.
+    $planilla = Planilla::find($id);
+    $tipo = DB::select('SELECT nombre FROM tbl_tipo_planillas a WHERE a.id = ?', [(int)$planilla->id_tipo_planilla]);
+    // Asignamos Datos.
+    $planilla = Planilla::find($id);
+    $detalle = $this->createStruct();
+    $detalle->f_inicio = Carbon::parse($planilla->f_inicio_planilla)->format('d/m/Y');
+    $detalle->f_fin = Carbon::parse($planilla->f_fin_planilla)->format('d/m/Y');
+    $detalle->anio = Carbon::parse($planilla->f_fin_planilla)->format('Y');
+    $detalle->mes = (int)Carbon::parse($planilla->f_inicio_planilla)->format('m');
+    $detalle->dia = (int)Carbon::parse($planilla->f_inicio_planilla)->format('d');
+    if ($tipo[0]->nombre == "PQ") {
+      $detalle->encabezado = "Detalle de Retenciones Quincenal";
+    } elseif ($tipo[0]->nombre == "PM") {
+      $detalle->encabezado = "Detalle de Retenciones Mensual";
+    }
+    $detalle->detalles = $this->showDetailRentaPlanilla($planilla->id);
+    // Bitácora.
+    $bitacora = "HA GENERADO REPORTE DE RENTA PLANILLA " .  $planilla->codigo . " EN SIPLA";
+    DB::select('CALL Sp_Insertar_Biacora(?, ?)', [$request->user()->id, $bitacora]);
+    // Retornando Respuesta.
+    return new DetalleRentaPlanillaExport($detalle);
   }
 }

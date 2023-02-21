@@ -137,6 +137,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('/', [PlanillaController::class, 'index']);
     Route::post('/', [PlanillaController::class, 'store']);
     Route::post('/exportar/{id}', [PlanillaController::class, 'exportExcel']);
+    Route::post('/exportar/renta/reporte/{id}', [PlanillaController::class, 'exportRentaExcel']);
     Route::get('/exportar/csv/planilla/{id}', [PlanillaController::class, 'exportCsv']);
     Route::get('/tipos', [PlanillaController::class, 'getTypes']);
     Route::get('/detalle/{id}', [PlanillaController::class, 'getDetailPlanilla']);
