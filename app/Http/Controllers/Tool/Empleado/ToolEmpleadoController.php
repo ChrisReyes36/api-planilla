@@ -17,27 +17,29 @@ class ToolEmpleadoController extends Controller
       'Correo Institucional', //C
       'Correo Personal', //D
       'Tel. Fijo', //E
-      'Tel. Celular', //F
-      'Dirección', //G
-      'DUI', //H
-      'NIT', //I
-      'Sexo', //J
-      'Fecha Ingreso', //K
-      'Fecha Nacimiento', //L
-      'Fecha Baja', //M
-      'Sueldo', //N
-      'Agencia', //O
-      'Departamento', //P
-      'Puesto', //Q
-      'Cuenta Bancaria', //R
-      'Fecha Expedición', //S
-      'Fecha Expiración', //T
-      'Lugar Expedición', //U
-      'Edad', //V
-      'Profesión', //W
-      'Estado Civil', //X
-      'Nacionalidad', //Y
-      'Estado', //Z
+      'Tel. Fijo Personal', // F
+      'Tel. Celular', //G
+      'Tel. Celular Personal', //H
+      'Dirección', //I
+      'DUI', //J
+      'NIT', //K
+      'Sexo', //L
+      'Fecha Ingreso', //M
+      'Fecha Nacimiento', //N
+      'Fecha Baja', //O
+      'Sueldo', //P
+      'Agencia', //Q
+      'Departamento', //R
+      'Puesto', //S
+      'Cuenta Bancaria', //T
+      'Fecha Expedición', //U
+      'Fecha Expiración', //V
+      'Lugar Expedición', //W
+      'Edad', //X
+      'Profesión', //Y
+      'Estado Civil', //A
+      'Nacionalidad', //AA
+      'Estado', //AB
     ];
   }
 
@@ -45,9 +47,9 @@ class ToolEmpleadoController extends Controller
   {
     $format = new ToolFormatExcelController();
     return [
-      'K' => NumberFormat::FORMAT_DATE_DDMMYYYY,
-      'L' => NumberFormat::FORMAT_DATE_DDMMYYYY,
-      'N' => $format::formatAccounting(),
+      'M' => NumberFormat::FORMAT_DATE_DDMMYYYY,
+      'N' => NumberFormat::FORMAT_DATE_DDMMYYYY,
+      'P' => $format::formatAccounting(),
     ];
   }
 
@@ -63,7 +65,9 @@ class ToolEmpleadoController extends Controller
         $value->correo_institucional,
         $value->correo_personal,
         $value->telfijo,
+        $value->telfijo_per,
         $value->celular,
+        $value->celular_per,
         $value->direccion,
         $value->dui,
         $value->nit,
