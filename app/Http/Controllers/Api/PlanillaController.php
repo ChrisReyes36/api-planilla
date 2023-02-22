@@ -417,6 +417,7 @@ class PlanillaController extends Controller
       DB::select('UPDATE tbl_planillas a
       SET a.total_planilla = (SELECT SUM(b.sueldo_liquido) total_pagado FROM tbl_detalle_planillas b WHERE b.id_planilla = ?)
       WHERE a.id = ?;', [$idPlanilla, $idPlanilla]);
+      DB::select('CALL Sp_Reiniciar_Asignaciones()');
       // Bitácora.
       $bitacora = "HA APROBADO PLANILLA " .  $planilla->codigo . " EN SIPLA";
       DB::select('CALL Sp_Insertar_Biacora(?, ?)', [$request->user()->id, $bitacora]);
