@@ -29,7 +29,7 @@
       @if ((float)$data['bonos'] > 0 && (float)$data['comision'] > 0)
       <b>
         más un bono de <span class="subtitle">${{number_format($data['bonos'], 2) }}, </span>
-        más un promedio de comisiones de <span class="subtitle">${{number_format($data['comision'], 2) }}</span>
+        y un promedio de comisiones de <span class="subtitle">${{number_format($data['comision'], 2) }}</span>
       </b>
       @elseif ((float)$data['bonos'] > 0 && (float)$data['comision'] == 0.0)
       <b>
