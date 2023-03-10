@@ -126,6 +126,7 @@ class VacacionController extends Controller
       $data["f_fin"] = $f_fin;
       $f_inicio = Carbon::parse($f_inicio);
       $dias = $f_inicio->diffInDays($f_fin);
+      $dias = $dias + 1;
       if ((int)$dias > 18) {
         return response()->json([
           'success' => false,
@@ -217,6 +218,7 @@ class VacacionController extends Controller
       $data["f_fin"] = $f_fin;
       $f_inicio = Carbon::parse($f_inicio);
       $dias = $f_inicio->diffInDays($f_fin);
+      $dias = $dias + 1;
       if ((int)$dias > 18) {
         return response()->json([
           'success' => false,
