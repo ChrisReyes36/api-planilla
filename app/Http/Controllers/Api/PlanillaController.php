@@ -288,6 +288,8 @@ class PlanillaController extends Controller
           DB::select('CALL Sp_InsertRecal_planilla_1Q_Dic(?)', [$uIdPlanilla->id]);
         } elseif ((int)$mesActual == 12 && (int)$diaActual > 15) {
           DB::select('CALL Sp_InsertRecal_planilla_2Q_Dic(?)', [$uIdPlanilla->id]);
+        } elseif ((int)$mesActual == 6 && (int)$diaActual > 15) {
+          DB::select('CALL Sp_InsertRecal_planilla_2Q_Jun(?)', [$uIdPlanilla->id]);
         } elseif ((int)$mesActual != 12 && (int)$diaActual > 15) {
           DB::select('CALL Sp_Insertar_D_planilla(?)', [$uIdPlanilla->id]);
           // Asignamos Valores
@@ -338,12 +340,21 @@ class PlanillaController extends Controller
     try {
       // Obtenemos Datos.
       $planilla = Planilla::find($id);
-      $mesActual = date('m', strtotime(Carbon::now()));
+      $diaActual = date('d', strtotime(Carbon::parse($planilla->f_inicio_planilla)));
+      $mesActual = date('m', strtotime(Carbon::parse($planilla->f_fin_planilla)));
       $anioActual = date('Y', strtotime(Carbon::now()));
       $tipo = DB::select('SELECT nombre FROM tbl_tipo_planillas a WHERE a.id = ?', [(int)$planilla->id_tipo_planilla]);
       // Actualizando Detalle Planilla.
       if ($tipo[0]->nombre == "PQ") {
-        DB::select('CALL Sp_Recalcular_planilla(?)', [$id]);
+        if ((int)$mesActual == 12 && (int)$diaActual <= 15) {
+          DB::select('CALL Sp_InsertRecal_planilla_1Q_Dic(?)', [$id]);
+        } elseif ((int)$mesActual == 12 && (int)$diaActual > 15) {
+          DB::select('CALL Sp_InsertRecal_planilla_2Q_Dic(?)', [$id]);
+        } elseif ((int)$mesActual == 6 && (int)$diaActual > 15) {
+          DB::select('CALL Sp_InsertRecal_planilla_2Q_Jun(?)', [$id]);
+        } else {
+          DB::select('CALL Sp_Recalcular_planilla(?)', [$id]);
+        }
       } elseif ($tipo[0]->nombre == "PM") {
         DB::select('CALL Sp_Recalcular_Planilla_Mensual(?, ?, ?)', [$id, (int)$mesActual, (int)$anioActual]);
       } elseif ($tipo[0]->nombre == "PA") {
